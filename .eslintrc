@@ -1,0 +1,20 @@
+{
+  "extends": ["plugin:@typescript-eslint/recommended", "prettier"],
+  "ignorePatterns": [".expo/", ".idea/", ".vscode/", ".firebase/", "node_modules/", "**/node_modules/", "assets/", "dist/", "build/"],
+  "plugins": ["@typescript-eslint", "unused-imports"],
+  "env": {
+    "browser": true,
+    "node": true,
+    "es6": true
+  },
+  "rules": {
+    "quotes": [2, "double", { "avoidEscape": true }],
+    "unused-imports/no-unused-imports": "warn",
+    "unused-imports/no-unused-vars": [
+      "warn",
+      { "args": "after-used", "argsIgnorePattern": "^_" }
+    ],
+    "@typescript-eslint/no-explicit-any": "warn",
+    "react/react-in-jsx-scope": "off"
+  }
+}

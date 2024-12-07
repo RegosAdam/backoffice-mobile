@@ -34,7 +34,9 @@
     "react-dom": "^18.2.0",
     "react-native": "0.76.3",
     "react-native-paper": "^5.12.5",
-    "styled-components": "^6.1.13"
+    "styled-components": "^6.1.13",
+    "expo-local-authentication": "~15.0.1",
+    "expo-secure-store": "~14.0.0"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

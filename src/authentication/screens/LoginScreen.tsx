@@ -5,8 +5,10 @@ import { auth } from '../../../.firebase/firebaseConfig';
 import SafeArea from '../../components/SafeArea';
 import CustomTextInput from '../../components/CustomTextInput';
 import CustomButton from '../../components/CustomButton';
+import * as LocalAuthentication from 'expo-local-authentication';
+import { setItem, getItem } from '../../helpers/storageHelper';
 
-function LoginScreen({ navigation }: any) {
+const LoginScreen: React.FC<any> = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
@@ -14,14 +16,56 @@ function LoginScreen({ navigation }: any) {
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
-      if (user.emailVerified) {
-        console.log('User logged in successfully!');
-      } else {
+
+      if (!user.emailVerified) {
         await signOut(auth);
         Alert.alert('Error', 'Please verify your email before logging in.');
+        return;
       }
-    } catch (error: any) {
-      Alert.alert('Error', error.message);
+
+      console.log('User logged in successfully!');
+
+      // User-specific keys
+      const promptKey = `biometricPromptShown_${user.uid}`;
+      const enabledKey = `biometricEnabled_${user.uid}`;
+      const tokenKey = `userToken_${user.uid}`;
+
+      // Check if we have ever shown the biometric prompt to this specific user
+      const promptShown = await getItem(promptKey);
+      if (promptShown === null) {
+        // First verified login for this user, show prompt
+        const compatible = await LocalAuthentication.hasHardwareAsync();
+        const enrolled = await LocalAuthentication.isEnrolledAsync();
+
+        if (compatible && enrolled) {
+          Alert.alert('Enable Biometric Login?', 'Would you like to use fingerprint/Face ID for future logins?', [
+            {
+              text: 'No',
+              style: 'cancel',
+              onPress: async () => {
+                await setItem(enabledKey, 'false');
+                await setItem(promptKey, 'true');
+              },
+            },
+            {
+              text: 'Yes',
+              onPress: async () => {
+                const token = await user.getIdToken();
+                await setItem(tokenKey, token);
+                await setItem(enabledKey, 'true');
+                await setItem(promptKey, 'true');
+              },
+            },
+          ]);
+        } else {
+          // No biometric hardware/enrollment for this device
+          await setItem(enabledKey, 'false');
+          await setItem(promptKey, 'true');
+        }
+      }
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error occurred';
+      Alert.alert('Error', message);
     }
   };
 
@@ -30,14 +74,15 @@ function LoginScreen({ navigation }: any) {
   };
 
   const loginDeveloper = async () => {
-    const email = 'dummyu013@gmail.com';
-    const password = 'Test123';
-
+    const devEmail = 'dummyu013@gmail.com';
+    const devPassword = 'Test123';
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      console.log('User logged in');
-    } catch (error) {
-      console.log('Error logging in user:', error);
+      await signInWithEmailAndPassword(auth, devEmail, devPassword);
+      console.log('Dev user logged in');
+      // Dev user also follows same logic above upon first verified login
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      console.log('Error logging in user:', message);
     }
   };
 
@@ -58,7 +103,8 @@ function LoginScreen({ navigation }: any) {
       </ScrollView>
     </SafeArea>
   );
-}
+};
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,

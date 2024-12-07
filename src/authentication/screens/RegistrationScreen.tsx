@@ -7,7 +7,7 @@ import CustomTextInput from '../../components/CustomTextInput';
 import CustomButton from '../../components/CustomButton';
 import { doc, setDoc } from 'firebase/firestore';
 
-function RegistrationScreen() {
+const RegistrationScreen: React.FC<any> = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -32,6 +32,7 @@ function RegistrationScreen() {
         logs: null,
       });
       await sendEmailVerification(userCredential.user);
+      navigation.navigate('Login');
       Alert.alert('Registration Successful', 'Please verify your email and then log in.');
     } catch (error: any) {
       Alert.alert('Error', error.message);
@@ -53,7 +54,7 @@ function RegistrationScreen() {
       </ScrollView>
     </SafeArea>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
